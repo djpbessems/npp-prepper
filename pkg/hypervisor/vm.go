@@ -13,20 +13,32 @@ type vAPPProperty struct {
 	Value string
 }
 
-func SetVirtualMachineProperties(ctx context.Context, fnd *find.Finder, name string) error {
-	vm, err := fnd.VirtualMachine(ctx, name)
+func SetVirtualMachineProperties(ctx context.Context, fnd *find.Finder, virtualmachine string, network string) error {
+	vm, err := fnd.VirtualMachine(ctx, virtualmachine)
 	if err != nil {
 		return err
 	}
 
 	vappproperties := []vAPPProperty{
 		{
-			Key:   "foo",
-			Value: "bar",
+			Key:   "guestinfo.dns.domains",
+			Value: fmt.Sprintf("${searchPath:%s}", network),
 		},
 		{
-			Key:   "woot",
-			Value: "dude",
+			Key:   "guestinfo.dns.servers",
+			Value: fmt.Sprintf("${dns:%s}", network),
+		},
+		{
+			Key:   "guestinfo.interface.0.ip.0.address",
+			Value: fmt.Sprintf("${autoIp:%s}", network),
+		},
+		{
+			Key:   "guestinfo.interface.0.ip.0.netmask",
+			Value: fmt.Sprintf("${netmask:%s}", network),
+		},
+		{
+			Key:   "guestinfo.interface.0.route.0.gateway",
+			Value: fmt.Sprintf("${gateway:%s}", network),
 		},
 	}
 
@@ -42,7 +54,7 @@ func SetVirtualMachineProperties(ctx context.Context, fnd *find.Finder, name str
 			Info: &types.VAppPropertyInfo{
 				Key:          int32(i),
 				Id:           vappproperty.Key,
-				DefaultValue: fmt.Sprintf("${%v}", vappproperty.Value),
+				DefaultValue: vappproperty.Value,
 				Type:         "expression",
 			},
 		})

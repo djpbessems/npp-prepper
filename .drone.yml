@@ -1,0 +1,34 @@
+kind: pipeline
+type: kubernetes
+name: 'Golang Build'
+
+environment:
+  SKOPEO_VERSION: v1.10.0
+
+clone:
+  disable: true
+
+steps:
+- name: Clone vappproperty-manager source repository
+  image: bv11-cr01.bessems.eu/proxy/alpine/git
+  commands:
+  - git clone https://code.spamasaurus.com/djpbessems/Go.vAppPropertyManager.git .
+  # - git checkout tags/$SKOPEO_VERSION
+  - git checkout HEAD
+  when:
+    status:
+    - success
+- name: Build binary
+  image: bv11-cr01.bessems.eu/proxy/library/golang
+  commands:
+  - |
+    go build -o ./bin/vappprop-manager ./cmd/vappprop-manager/main.go
+  - |
+    curl \
+      --header "Authorization: token $GIT_APIKEY" \
+      --upload-file bin/vappprop-manager \
+      https://code.spamasaurus.com/api/packages/$GIT_USERNAME/generic/vappprop-manager/v0.1.0/vappprop-manager
+  environment:
+    GIT_APIKEY:
+      from_secret: git_apikey
+    GIT_USERNAME: djpbessems
