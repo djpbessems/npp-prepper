@@ -22,28 +22,28 @@ func SetVirtualMachineProperties(ctx context.Context, fnd *find.Finder, virtualm
 	vappproperties := []vAPPProperty{
 		{
 			Key:   "guestinfo.dns.domains",
-			Value: fmt.Sprintf("${searchPath:%s}", network),
+			Value: "${searchPath:%s}",
 		},
 		{
 			Key:   "guestinfo.dns.servers",
-			Value: fmt.Sprintf("${dns:%s}", network),
+			Value: "${dns:%s}",
 		},
 		{
 			Key:   "guestinfo.interface.0.ip.0.address",
-			Value: fmt.Sprintf("${autoIp:%s}", network),
+			Value: "${autoIp:%s}",
 		},
 		{
 			Key:   "guestinfo.interface.0.ip.0.netmask",
-			Value: fmt.Sprintf("${netmask:%s}", network),
+			Value: "${netmask:%s}",
 		},
 		{
 			Key:   "guestinfo.interface.0.route.0.gateway",
-			Value: fmt.Sprintf("${gateway:%s}", network),
+			Value: "${gateway:%s}",
 		},
 	}
 
 	vappconfig := &types.VmConfigSpec{
-		// OvfEnvironmentTransport: []string{"com.vmware.guestinfo"},
+		OvfEnvironmentTransport: []string{"com.vmware.guestInfo"},
 	}
 
 	for i, vappproperty := range vappproperties {
@@ -54,11 +54,13 @@ func SetVirtualMachineProperties(ctx context.Context, fnd *find.Finder, virtualm
 			Info: &types.VAppPropertyInfo{
 				Key:          int32(i),
 				Id:           vappproperty.Key,
-				DefaultValue: vappproperty.Value,
+				DefaultValue: fmt.Sprintf(vappproperty.Value, network),
 				Type:         "expression",
 			},
 		})
 	}
+
+	// spew.Dump(vappconfig)
 
 	task, err := vm.Reconfigure(ctx, types.VirtualMachineConfigSpec{
 		VAppConfig: vappconfig,

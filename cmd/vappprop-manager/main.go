@@ -5,11 +5,15 @@ import (
 	"flag"
 	"log"
 
-	"spamasaurus.com/m/pkg/config"
 	"spamasaurus.com/m/pkg/hypervisor"
 )
 
 type Input struct {
+	FQDN     string
+	Username string
+	Password string
+
+	Datacenter     string
 	VirtualMachine string
 	Network        string
 }
@@ -17,24 +21,23 @@ type Input struct {
 func main() {
 	var input Input
 
-	flag.StringVar(&input.VirtualMachine, "vm", "", "name of VM")
-	flag.StringVar(&input.Network, "network", "", "name of network portgroup")
+	flag.StringVar(&input.FQDN, "server", "", "FQDN of the vCenter appliance")
+	flag.StringVar(&input.Username, "username", "", "Username to authenticate with")
+	flag.StringVar(&input.Password, "password", "", "Password to authenticate with")
+	flag.StringVar(&input.Datacenter, "dc", "", "Name of datacenter")
+	flag.StringVar(&input.VirtualMachine, "vm", "", "Name of VM")
+	flag.StringVar(&input.Network, "network", "", "Name of network portgroup")
 	flag.Parse()
-
-	cfg, err := config.NewConfig()
-	if err != nil {
-		log.Fatalf("Invalid configuration: %s", err)
-	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	clt, err := hypervisor.NewClient(ctx, cfg.Hypervisor.Url, cfg.Hypervisor.Username, cfg.Hypervisor.Password, true)
+	clt, err := hypervisor.NewClient(ctx, input.FQDN, input.Username, input.Password, true)
 	if err != nil {
 		log.Fatalf("Login failed: %s", err)
 	}
 
-	fnd, err := hypervisor.DatacenterFinder(ctx, clt, cfg.Hypervisor.Datacenter)
+	fnd, err := hypervisor.DatacenterFinder(ctx, clt, input.Datacenter)
 	if err != nil {
 		log.Fatalf("Foo indeed: %s", err)
 	}
