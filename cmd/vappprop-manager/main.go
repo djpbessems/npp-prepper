@@ -2,47 +2,49 @@ package main
 
 import (
 	"context"
-	"flag"
 	"log"
+	"os"
+
+	"github.com/jessevdk/go-flags"
 
 	"spamasaurus.com/m/pkg/hypervisor"
 )
 
-type Input struct {
-	FQDN     string
-	Username string
-	Password string
-
-	Datacenter     string
-	VirtualMachine string
-	Network        string
-}
-
 func main() {
-	var input Input
+	var opts struct {
+		FQDN     string `short:"s" long:"server" description:"FQDN of the vCenter appliance" required:"true"`
+		Username string `short:"u" long:"username" description:"Username to authenticate with" required:"true"`
+		Password string `short:"p" long:"password" description:"Password to authenticate with" required:"true"`
 
-	flag.StringVar(&input.FQDN, "server", "", "FQDN of the vCenter appliance")
-	flag.StringVar(&input.Username, "username", "", "Username to authenticate with")
-	flag.StringVar(&input.Password, "password", "", "Password to authenticate with")
-	flag.StringVar(&input.Datacenter, "dc", "", "Name of datacenter")
-	flag.StringVar(&input.VirtualMachine, "vm", "", "Name of VM")
-	flag.StringVar(&input.Network, "network", "", "Name of network portgroup")
-	flag.Parse()
+		Datacenter     string `short:"d" long:"datacenter" description:"Name of datacenter" required:"true"`
+		VirtualMachine string `short:"v" long:"virtualmachine" description:"Name of virtual machine" required:"true"`
+		Network        string `short:"n" long:"network" description:"Name of network portgroup" required:"true"`
+	}
+
+	_, err := flags.Parse(&opts)
+	if err != nil {
+		if e, ok := err.(*flags.Error); ok {
+			if e.Type == flags.ErrHelp {
+				os.Exit(0)
+			}
+		}
+		os.Exit(1)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	clt, err := hypervisor.NewClient(ctx, input.FQDN, input.Username, input.Password, true)
+	clt, err := hypervisor.NewClient(ctx, opts.FQDN, opts.Username, opts.Password, true)
 	if err != nil {
-		log.Fatalf("Login failed: %s", err)
+		log.Fatalf("[ERROR] Login failed: %s", err)
 	}
 
-	fnd, err := hypervisor.DatacenterFinder(ctx, clt, input.Datacenter)
+	fnd, err := hypervisor.DatacenterFinder(ctx, clt, opts.Datacenter)
 	if err != nil {
-		log.Fatalf("Foo indeed: %s", err)
+		log.Fatalf("[ERROR] Unable to determine datacenter: %s", err)
 	}
 
-	if err := hypervisor.SetVirtualMachineProperties(ctx, fnd, input.VirtualMachine, input.Network); err != nil {
-		log.Fatalf("Could not apply vApp properties: %s", err)
+	if err := hypervisor.SetVirtualMachineProperties(ctx, fnd, opts.VirtualMachine, opts.Network); err != nil {
+		log.Fatalf("[ERROR] Could not apply vApp properties: %s", err)
 	}
 }

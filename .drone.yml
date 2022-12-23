@@ -3,7 +3,7 @@ type: kubernetes
 name: 'Golang Build'
 
 environment:
-  BINARY_VERSION: v0.2.0
+  BINARY_VERSION: v0.3.0
 
 clone:
   disable: true
