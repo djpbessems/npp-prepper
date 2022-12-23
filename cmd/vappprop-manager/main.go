@@ -47,4 +47,6 @@ func main() {
 	if err := hypervisor.SetVirtualMachineProperties(ctx, fnd, opts.VirtualMachine, opts.Network); err != nil {
 		log.Fatalf("[ERROR] Could not apply vApp properties: %s", err)
 	}
+
+	log.Printf("[SUCCESS] Network protocol profile properties added to virtual machine '%s' and configured for network '%s'", opts.VirtualMachine, opts.Network)
 }
