@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -19,7 +20,37 @@ func SetVirtualMachineProperties(ctx context.Context, fnd *find.Finder, virtualm
 		return err
 	}
 
-	vappproperties := []vAPPProperty{
+	var moref mo.VirtualMachine
+	vm.Properties(ctx, vm.Reference(), []string{"config.vAppConfig"}, &moref)
+
+	vappconfig := &types.VmConfigSpec{
+		OvfEnvironmentTransport: []string{"com.vmware.guestInfo"},
+	}
+
+	currentvappproperties := moref.Config.VAppConfig.GetVmConfigInfo().Property
+	for _, vappproperty := range currentvappproperties {
+		vappconfig.Property = append(vappconfig.Property, types.VAppPropertySpec{
+			ArrayUpdateSpec: types.ArrayUpdateSpec{
+				Operation: types.ArrayUpdateOperationAdd,
+			},
+			Info: &types.VAppPropertyInfo{
+				Key:              vappproperty.Key,
+				ClassId:          vappproperty.ClassId,
+				InstanceId:       vappproperty.InstanceId,
+				Id:               vappproperty.Id,
+				Category:         vappproperty.Category,
+				Label:            vappproperty.Label,
+				Type:             vappproperty.Type,
+				TypeReference:    vappproperty.TypeReference,
+				UserConfigurable: vappproperty.UserConfigurable,
+				DefaultValue:     vappproperty.DefaultValue,
+				Value:            vappproperty.Value,
+				Description:      vappproperty.Description,
+			},
+		})
+	}
+
+	newvappproperties := []vAPPProperty{
 		{
 			Key:   "guestinfo.dns.domains",
 			Value: "${searchPath:%s}",
@@ -42,25 +73,19 @@ func SetVirtualMachineProperties(ctx context.Context, fnd *find.Finder, virtualm
 		},
 	}
 
-	vappconfig := &types.VmConfigSpec{
-		OvfEnvironmentTransport: []string{"com.vmware.guestInfo"},
-	}
-
-	for i, vappproperty := range vappproperties {
+	for i, vappproperty := range newvappproperties {
 		vappconfig.Property = append(vappconfig.Property, types.VAppPropertySpec{
 			ArrayUpdateSpec: types.ArrayUpdateSpec{
 				Operation: types.ArrayUpdateOperationAdd,
 			},
 			Info: &types.VAppPropertyInfo{
-				Key:          int32(i),
+				Key:          int32(i + len(currentvappproperties)),
 				Id:           vappproperty.Key,
 				DefaultValue: fmt.Sprintf(vappproperty.Value, network),
 				Type:         "expression",
 			},
 		})
 	}
-
-	// spew.Dump(vappconfig)
 
 	task, err := vm.Reconfigure(ctx, types.VirtualMachineConfigSpec{
 		VAppConfig: vappconfig,
