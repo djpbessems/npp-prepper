@@ -3,7 +3,7 @@ type: kubernetes
 name: 'Golang Build'
 
 environment:
-  BINARY_VERSION: v0.4.1
+  BINARY_VERSION: v0.4.2
 
 clone:
   disable: true
@@ -12,7 +12,7 @@ steps:
 - name: Clone vappproperty-manager source repository
   image: bv11-cr01.bessems.eu/proxy/alpine/git
   commands:
-  - git clone https://code.spamasaurus.com/djpbessems/Go.vAppPropertyManager.git .
+  - git clone https://code.spamasaurus.com/djpbessems/Go.NPP-Prepper.git .
   # - git checkout tags/$SKOPEO_VERSION
   - git checkout HEAD
   when:
@@ -22,12 +22,12 @@ steps:
   image: bv11-cr01.bessems.eu/proxy/library/golang
   commands:
   - |
-    go build -o ./bin/vappprop-manager ./cmd/vappprop-manager/main.go
+    go build -o ./bin/npp-prepper ./cmd/npp-prepper/main.go
   - |
     curl \
       --header "Authorization: token $GIT_APIKEY" \
-      --upload-file bin/vappprop-manager \
-      https://code.spamasaurus.com/api/packages/$GIT_USERNAME/generic/vappprop-manager/$BINARY_VERSION/vappprop-manager
+      --upload-file bin/npp-prepper \
+      https://code.spamasaurus.com/api/packages/$GIT_USERNAME/generic/npp-prepper/$BINARY_VERSION/npp-prepper
   environment:
     GIT_APIKEY:
       from_secret: git_apikey
