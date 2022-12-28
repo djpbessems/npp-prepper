@@ -3,8 +3,10 @@ package hypervisor
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
@@ -14,10 +16,18 @@ type vAPPProperty struct {
 	Value string
 }
 
-func SetVirtualMachineProperties(ctx context.Context, fnd *find.Finder, virtualmachine string, network string) error {
-	vm, err := fnd.VirtualMachine(ctx, virtualmachine)
+func SetVirtualMachineProperties(ctx context.Context, clt *vim25.Client, datacenter, virtualmachine, network string) error {
+	finder := find.NewFinder(clt, true)
+
+	dc, err := finder.Datacenter(ctx, datacenter)
 	if err != nil {
-		return err
+		log.Fatalf("[ERROR] Unable to determine datacenter: %s", err)
+	}
+
+	finder.SetDatacenter(dc)
+	vm, err := finder.VirtualMachine(ctx, virtualmachine)
+	if err != nil {
+		log.Fatalf("[ERROR] Unable to determine virtual machine: %s", err)
 	}
 
 	var moref mo.VirtualMachine
