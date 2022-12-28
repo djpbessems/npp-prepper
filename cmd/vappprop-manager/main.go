@@ -56,12 +56,12 @@ func main() {
 			log.Fatalf("[ERROR] Could not create network protocol profile: %s", err)
 		}
 
-		log.Printf("[SUCCESS] Hurray! We did it!")
+		log.Printf("[SUCCESS] New network protocol profile created within datacenter '%s' (associated with network '%s')", Commands.Datacenter.Name, Commands.Datacenter.Network)
 	case "virtualmachine", "vm":
 		if err := hypervisor.SetVirtualMachineProperties(ctx, clt, Commands.VirtualMachine.Datacenter, Commands.VirtualMachine.Name, Commands.VirtualMachine.Network); err != nil {
 			log.Fatalf("[ERROR] Could not apply vApp properties: %s", err)
 		}
 
-		log.Printf("[SUCCESS] Network protocol profile properties added to virtual machine '%s' and configured for network '%s'", Commands.VirtualMachine.Name, Commands.VirtualMachine.Network)
+		log.Printf("[SUCCESS] Network protocol profile properties added to virtual machine '%s' (configured for network '%s')", Commands.VirtualMachine.Name, Commands.VirtualMachine.Network)
 	}
 }

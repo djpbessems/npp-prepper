@@ -3,7 +3,7 @@ module spamasaurus.com/m
 go 1.19
 
 require (
-	github.com/davecgh/go-spew v1.1.1
+	github.com/google/uuid v1.3.0
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/vmware/govmomi v0.30.0
 )
