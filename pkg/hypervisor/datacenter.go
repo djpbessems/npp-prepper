@@ -17,7 +17,7 @@ import (
 	"spamasaurus.com/m/pkg/utils"
 )
 
-func CreateNetworkProtocolProfile(ctx context.Context, clt *vim25.Client, datacenter, network, startaddress, endaddress, netmask, dnsdomain, gateway string, dnsserver []string) error {
+func CreateNetworkProtocolProfile(ctx context.Context, clt *vim25.Client, datacenter, network, startaddress, endaddress, netmask, dnsdomain, gateway string, dnsserver []string, force bool) error {
 	finder := find.NewFinder(clt, true)
 	dc, err := finder.Datacenter(ctx, datacenter)
 	if err != nil {
@@ -33,7 +33,22 @@ func CreateNetworkProtocolProfile(ctx context.Context, clt *vim25.Client, datace
 	pc := property.DefaultCollector(clt)
 	pc.Retrieve(ctx, []types.ManagedObjectReference{nw.Reference()}, []string{"summary"}, &networksummary)
 	if networksummary.Summary.GetNetworkSummary().IpPoolId != nil {
-		log.Fatalf("[ERROR] Network '%s' already has an existing protocol profile associated", network)
+		if force == true {
+			request := &types.DestroyIpPool{
+				This:  *clt.ServiceContent.IpPoolManager,
+				Dc:    dc.Reference(),
+				Id:    *networksummary.Summary.GetNetworkSummary().IpPoolId,
+				Force: true,
+			}
+			if _, err := methods.DestroyIpPool(ctx, clt.RoundTripper, request); err != nil {
+				log.Fatalf("[ERROR] Could not remove existing network protocol profile '%s'",
+					networksummary.Summary.GetNetworkSummary().IpPoolName)
+			}
+		} else {
+			log.Fatalf("[ERROR] Network '%s' already has existing network protocol profile '%s' associated; use the --force flag to replace it",
+				network,
+				networksummary.Summary.GetNetworkSummary().IpPoolName)
+		}
 	}
 
 	iprange, err := netrange.ParseRange(fmt.Sprintf("%s-%s", startaddress, endaddress))
@@ -66,7 +81,10 @@ func CreateNetworkProtocolProfile(ctx context.Context, clt *vim25.Client, datace
 	}
 
 	if _, err := methods.CreateIpPool(ctx, clt.RoundTripper, request); err != nil {
-		log.Fatalf("[ERROR]: Failed creating new network protocol profile (for network '%s' within datacenter '%s'): %s", network, datacenter, err)
+		log.Fatalf("[ERROR]: Failed creating new network protocol profile (for network '%s' within datacenter '%s'): %s",
+			network,
+			datacenter,
+			err)
 	}
 
 	return nil

@@ -25,6 +25,7 @@ var Commands struct {
 		DnsServer    []string `long:"dnsserver" required:"true"`
 		DnsDomain    string   `long:"dnsdomain" required:"true"`
 		Gateway      string   `long:"gateway" required:"true"`
+		Force        bool     `short:"f" long:"force"`
 	} // `command:"datacenter" alias:"dc" description:"Define a Network Protocol Profile within a datacenter"`
 	VirtualMachine struct {
 		Datacenter string `short:"d" long:"datacenter" description:"Name of datacenter" required:"true"`
@@ -62,7 +63,7 @@ func main() {
 
 	switch parser.Active.Name {
 	case "datacenter", "dc":
-		if err := hypervisor.CreateNetworkProtocolProfile(ctx, clt, Commands.Datacenter.Name, Commands.Datacenter.Network, Commands.Datacenter.StartAddress, Commands.Datacenter.EndAddress, Commands.Datacenter.Netmask, Commands.Datacenter.DnsDomain, Commands.Datacenter.Gateway, Commands.Datacenter.DnsServer); err != nil {
+		if err := hypervisor.CreateNetworkProtocolProfile(ctx, clt, Commands.Datacenter.Name, Commands.Datacenter.Network, Commands.Datacenter.StartAddress, Commands.Datacenter.EndAddress, Commands.Datacenter.Netmask, Commands.Datacenter.DnsDomain, Commands.Datacenter.Gateway, Commands.Datacenter.DnsServer, Commands.Datacenter.Force); err != nil {
 			log.Fatalf("[ERROR] Could not create network protocol profile: %s", err)
 		}
 
