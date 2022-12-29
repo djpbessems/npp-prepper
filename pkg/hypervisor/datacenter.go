@@ -7,10 +7,12 @@ import (
 	"net"
 
 	"github.com/google/uuid"
-	"github.com/netdata/go.d.plugin/pkg/iprange"
+	netrange "github.com/netdata/go.d.plugin/pkg/iprange"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/property"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/methods"
+	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 	"spamasaurus.com/m/pkg/utils"
 )
@@ -27,9 +29,16 @@ func CreateNetworkProtocolProfile(ctx context.Context, clt *vim25.Client, datace
 		log.Fatalf("[ERROR] Unable to determine network: %s", err)
 	}
 
-	iprange, err := iprange.ParseRange(fmt.Sprintf("%s-%s", startaddress, endaddress))
+	var networksummary mo.Network
+	pc := property.DefaultCollector(clt)
+	pc.Retrieve(ctx, []types.ManagedObjectReference{nw.Reference()}, []string{"summary"}, &networksummary)
+	if networksummary.Summary.GetNetworkSummary().IpPoolId != nil {
+		log.Fatalf("[ERROR] Network '%s' already has an existing protocol profile associated", network)
+	}
+
+	iprange, err := netrange.ParseRange(fmt.Sprintf("%s-%s", startaddress, endaddress))
 	if err != nil {
-		log.Fatalf("[ERROR] Foo: %s", err)
+		log.Fatalf("[ERROR] Invalid IP range: %s", err)
 	}
 	ipnetwork := net.ParseIP(startaddress).Mask(net.IPMask(net.ParseIP(netmask).To4()))
 
