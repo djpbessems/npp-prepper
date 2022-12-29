@@ -17,14 +17,22 @@ var Global struct {
 }
 var Commands struct {
 	Datacenter struct {
-		Name    string `short:"n" long:"name" description:"Name of datacenter" required:"true"`
-		Network string `short:"p" long:"portgroup" description:"Name of network portgroup" required:"true"`
+		Name         string   `short:"n" long:"name" description:"Name of datacenter" required:"true"`
+		Network      string   `short:"p" long:"portgroup" description:"Name of network portgroup" required:"true"`
+		StartAddress string   `long:"startaddress" required:"true"`
+		EndAddress   string   `long:"endaddress" required:"true"`
+		Netmask      string   `long:"netmask" required:"true"`
+		DnsServer    []string `long:"dnsserver" required:"true"`
+		DnsDomain    string   `long:"dnsdomain" required:"true"`
+		Gateway      string   `long:"gateway" required:"true"`
 	} // `command:"datacenter" alias:"dc" description:"Define a Network Protocol Profile within a datacenter"`
 	VirtualMachine struct {
 		Datacenter string `short:"d" long:"datacenter" description:"Name of datacenter" required:"true"`
 		Name       string `short:"n" long:"name" description:"Name of virtual machine" required:"true"`
 		Network    string `short:"p" long:"portgroup" description:"Name of network portgroup" required:"true"`
 	} // `command:"virtualmachine" alias:"vm" description:"Configure a virtual machine for usage of Network Protocol Profiles"`
+	GuestOS struct {
+	} // `command:"guestos" alias:"os" description:"Configure guest OS network with allocated IP address"`
 }
 
 func main() {
@@ -33,6 +41,8 @@ func main() {
 	parser.AddCommand("dc", "", "", &Commands.Datacenter)
 	parser.AddCommand("virtualmachine", "Configure a virtual machine for usage of Network Protocol Profiles", "", &Commands.VirtualMachine)
 	parser.AddCommand("vm", "", "", &Commands.VirtualMachine)
+	parser.AddCommand("guestos", "Configure guest OS network with allocated IP address", "", &Commands.GuestOS)
+	parser.AddCommand("os", "", "", &Commands.GuestOS)
 	_, err := parser.Parse()
 	if err != nil {
 		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
@@ -52,11 +62,13 @@ func main() {
 
 	switch parser.Active.Name {
 	case "datacenter", "dc":
-		if err := hypervisor.CreateNetworkProtocolProfile(ctx, clt, Commands.Datacenter.Name, Commands.Datacenter.Network); err != nil {
+		if err := hypervisor.CreateNetworkProtocolProfile(ctx, clt, Commands.Datacenter.Name, Commands.Datacenter.Network, Commands.Datacenter.StartAddress, Commands.Datacenter.EndAddress, Commands.Datacenter.Netmask, Commands.Datacenter.DnsDomain, Commands.Datacenter.Gateway, Commands.Datacenter.DnsServer); err != nil {
 			log.Fatalf("[ERROR] Could not create network protocol profile: %s", err)
 		}
 
 		log.Printf("[SUCCESS] New network protocol profile created within datacenter '%s' (associated with network '%s')", Commands.Datacenter.Name, Commands.Datacenter.Network)
+	case "guestos", "os":
+		// TODO
 	case "virtualmachine", "vm":
 		if err := hypervisor.SetVirtualMachineProperties(ctx, clt, Commands.VirtualMachine.Datacenter, Commands.VirtualMachine.Name, Commands.VirtualMachine.Network); err != nil {
 			log.Fatalf("[ERROR] Could not apply vApp properties: %s", err)

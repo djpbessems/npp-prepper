@@ -2,41 +2,57 @@ package hypervisor
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"net"
 
 	"github.com/google/uuid"
-
+	"github.com/netdata/go.d.plugin/pkg/iprange"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/types"
+	"spamasaurus.com/m/pkg/utils"
 )
 
-func CreateNetworkProtocolProfile(ctx context.Context, clt *vim25.Client, datacenter, network string) error {
+func CreateNetworkProtocolProfile(ctx context.Context, clt *vim25.Client, datacenter, network, startaddress, endaddress, netmask, dnsdomain, gateway string, dnsserver []string) error {
 	finder := find.NewFinder(clt, true)
 	dc, err := finder.Datacenter(ctx, datacenter)
 	if err != nil {
 		log.Fatalf("[ERROR] Unable to determine datacenter: %s", err)
 	}
 	finder.SetDatacenter(dc)
-	// nw, err := finder.Network(ctx, network)
-	// if err != nil {
-	// 	log.Fatalf("[ERROR] Unable to determine network: %s", err)
-	// }
+	nw, err := finder.Network(ctx, network)
+	if err != nil {
+		log.Fatalf("[ERROR] Unable to determine network: %s", err)
+	}
+
+	iprange, err := iprange.ParseRange(fmt.Sprintf("%s-%s", startaddress, endaddress))
+	if err != nil {
+		log.Fatalf("[ERROR] Foo: %s", err)
+	}
+	ipnetwork := net.ParseIP(startaddress).Mask(net.IPMask(net.ParseIP(netmask).To4()))
 
 	request := &types.CreateIpPool{
 		This: *clt.ServiceContent.IpPoolManager,
 		Dc:   dc.Reference(),
 		Pool: types.IpPool{
-			Name:          "ippool-" + (uuid.New().String()),
-			DnsDomain:     "meta.k8s.cluster",
-			DnsSearchPath: "meta.k8s.cluster",
-			// NetworkAssociation: []types.IpPoolAssociation{{
-			// 	// This generates the error 'cannot use nw.Reference() (value of type types.ManagedObjectReference) as type *types.ManagedObjectReference in struct literal'
-			// 	Network:     nw.Reference(),
-			// 	NetworkName: network,
-			// },
-			// },
+			Name:          "ippool-" + uuid.New().String()[0:5],
+			DnsDomain:     dnsdomain,
+			DnsSearchPath: dnsdomain,
+			NetworkAssociation: []types.IpPoolAssociation{{
+				Network:     utils.MoRefAddr(nw.Reference()),
+				NetworkName: network,
+			}},
+			Ipv4Config: &types.IpPoolIpPoolConfigInfo{
+				SubnetAddress:       ipnetwork.String(),
+				Netmask:             netmask,
+				Gateway:             gateway,
+				Range:               fmt.Sprintf("%s#%d", startaddress, iprange.Size()),
+				Dns:                 dnsserver,
+				DhcpServerAvailable: utils.BoolAddr(false),
+				IpPoolEnabled:       utils.BoolAddr(true),
+			},
 		},
 	}
 

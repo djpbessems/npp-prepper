@@ -3,13 +3,13 @@ type: kubernetes
 name: 'Golang Build'
 
 environment:
-  BINARY_VERSION: v0.4.2
+  BINARY_VERSION: v0.4.3
 
 clone:
   disable: true
 
 steps:
-- name: Clone vappproperty-manager source repository
+- name: Clone npp-prepper source repository
   image: bv11-cr01.bessems.eu/proxy/alpine/git
   commands:
   - git clone https://code.spamasaurus.com/djpbessems/Go.NPP-Prepper.git .
