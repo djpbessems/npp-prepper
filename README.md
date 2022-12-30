@@ -49,6 +49,7 @@ Help Options:
           --dnsserver=
           --dnsdomain=
           --gateway=
+      -f, --force
 ```
 
 #### Subcommand `guestos` (`os`) usage
