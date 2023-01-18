@@ -29,7 +29,7 @@ func NewClient(ctx context.Context, host, username, password string, insecure bo
 		return nil, err
 	}
 
-	return clt, err
+	return clt, nil
 }
 
 func DatacenterFinder(ctx context.Context, clt *vim25.Client, datacenter string) (*find.Finder, error) {

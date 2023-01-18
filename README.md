@@ -1,9 +1,12 @@
-# NPP-Prepper
+# NPP-Prepper [![Build Status](https://ci.spamasaurus.com/api/badges/djpbessems/Go.NPP-Prepper/status.svg)](https://ci.spamasaurus.com/djpbessems/Go.NPP-Prepper)
 A simple static binary that allows the creation of vCenter's Network Protocol Profiles (within vCenter's API referred to as IpPools).
 
 Existing tooling like `govc` or `PowerCLI` can either not be used to configure IpPools, or adds unreasonably large overhead (container image `vmware/powerclicore` is nearly 1GB large). In fact, VMware's documentation *only* mentions how to use this feature through the use of vCenter's webinterface, which is entirely pointless in nowadays' world of automation.
 
 `npp-prepper` was born out of necessity; one of my projects involves bootstrapping OVA's in greenfield environments, with the explicit design choice to not rely on external processes, like DHCP.
+
+### Download
+Latest release can be downloaded [here](https://code.spamasaurus.com/djpbessems/-/packages/generic/npp-prepper)
 
 ### Usage
 ```bash
@@ -42,7 +45,7 @@ Help Options:
 
 [dc command options]
       -n, --name=         Name of datacenter
-      -p, --portgroup=    Name of network portgroup
+          --portgroup=    Name of network portgroup
           --startaddress=
           --endaddress=
           --netmask=
@@ -69,9 +72,9 @@ Help Options:
   -h, --help            Show this help message
 
 [vm command options]
-      -d, --datacenter= Name of datacenter
       -n, --name=       Name of virtual machine
-      -p, --portgroup=  Name of network portgroup
+          --datacenter= Name of datacenter
+          --portgroup=  Name of network portgroup
 ```
 
 ### Future plans

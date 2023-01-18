@@ -18,7 +18,7 @@ var Global struct {
 var Commands struct {
 	Datacenter struct {
 		Name         string   `short:"n" long:"name" description:"Name of datacenter" required:"true"`
-		Network      string   `short:"p" long:"portgroup" description:"Name of network portgroup" required:"true"`
+		Network      string   `long:"portgroup" description:"Name of network portgroup" required:"true"`
 		StartAddress string   `long:"startaddress" required:"true"`
 		EndAddress   string   `long:"endaddress" required:"true"`
 		Netmask      string   `long:"netmask" required:"true"`
@@ -28,9 +28,9 @@ var Commands struct {
 		Force        bool     `short:"f" long:"force"`
 	} // `command:"datacenter" alias:"dc" description:"Define a Network Protocol Profile within a datacenter"`
 	VirtualMachine struct {
-		Datacenter string `short:"d" long:"datacenter" description:"Name of datacenter" required:"true"`
 		Name       string `short:"n" long:"name" description:"Name of virtual machine" required:"true"`
-		Network    string `short:"p" long:"portgroup" description:"Name of network portgroup" required:"true"`
+		Datacenter string `long:"datacenter" description:"Name of datacenter" required:"true"`
+		Network    string `long:"portgroup" description:"Name of network portgroup" required:"true"`
 	} // `command:"virtualmachine" alias:"vm" description:"Configure a virtual machine for usage of Network Protocol Profiles"`
 	GuestOS struct {
 	} // `command:"guestos" alias:"os" description:"Configure guest OS network with allocated IP address"`
