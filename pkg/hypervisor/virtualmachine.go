@@ -16,7 +16,7 @@ type vAPPProperty struct {
 	Value string
 }
 
-func SetVirtualMachineProperties(ctx context.Context, clt *vim25.Client, datacenter, virtualmachine, network string) error {
+func SetVirtualMachineProperties(ctx context.Context, clt *vim25.Client, datacenter, virtualmachine, network string, ovftransport bool) error {
 	finder := find.NewFinder(clt, true)
 
 	dc, err := finder.Datacenter(ctx, datacenter)
@@ -33,8 +33,11 @@ func SetVirtualMachineProperties(ctx context.Context, clt *vim25.Client, datacen
 	var moref mo.VirtualMachine
 	vm.Properties(ctx, vm.Reference(), []string{"config.vAppConfig"}, &moref)
 
-	vappconfig := &types.VmConfigSpec{
-		OvfEnvironmentTransport: []string{"com.vmware.guestInfo"},
+	vappconfig := &types.VmConfigSpec{}
+	if ovftransport == true {
+		vappconfig = &types.VmConfigSpec{
+			OvfEnvironmentTransport: []string{"com.vmware.guestInfo"},
+		}
 	}
 
 	currentvappproperties := moref.Config.VAppConfig.GetVmConfigInfo().Property
