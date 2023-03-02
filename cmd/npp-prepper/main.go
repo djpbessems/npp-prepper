@@ -31,7 +31,7 @@ var Commands struct {
 		Name                string `short:"n" long:"name" description:"Name of virtual machine" required:"true"`
 		Datacenter          string `long:"datacenter" description:"Name of datacenter" required:"true"`
 		Network             string `long:"portgroup" description:"Name of network portgroup" required:"true"`
-		DisableOvfTransport bool   `long:"ovftransport" description:"Disable the OVF transport 'VMware Tools'"`
+		DisableOvfTransport bool   `long:"disableovftransport" description:"Disable the OVF transport 'VMware Tools'"`
 	} // `command:"virtualmachine" alias:"vm" description:"Configure a virtual machine for usage of Network Protocol Profiles"`
 	GuestOS struct {
 	} // `command:"guestos" alias:"os" description:"Configure guest OS network with allocated IP address"`
