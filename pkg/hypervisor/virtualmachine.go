@@ -16,7 +16,7 @@ type vAPPProperty struct {
 	Value string
 }
 
-func SetVirtualMachineProperties(ctx context.Context, clt *vim25.Client, datacenter, virtualmachine, network string, disableovftransport bool) error {
+func SetVirtualMachineProperties(ctx context.Context, clt *vim25.Client, datacenter, virtualmachine, network string) error {
 	finder := find.NewFinder(clt, true)
 
 	dc, err := finder.Datacenter(ctx, datacenter)
@@ -36,31 +36,31 @@ func SetVirtualMachineProperties(ctx context.Context, clt *vim25.Client, datacen
 	vappconfig := &types.VmConfigSpec{
 		OvfEnvironmentTransport: []string{"com.vmware.guestInfo"},
 	}
-	if disableovftransport == true {
-		vappconfig = &types.VmConfigSpec{}
-	}
 
-	currentvappproperties := moref.Config.VAppConfig.GetVmConfigInfo().Property
-	for _, vappproperty := range currentvappproperties {
-		vappconfig.Property = append(vappconfig.Property, types.VAppPropertySpec{
-			ArrayUpdateSpec: types.ArrayUpdateSpec{
-				Operation: types.ArrayUpdateOperationAdd,
-			},
-			Info: &types.VAppPropertyInfo{
-				Key:              vappproperty.Key,
-				ClassId:          vappproperty.ClassId,
-				InstanceId:       vappproperty.InstanceId,
-				Id:               vappproperty.Id,
-				Category:         vappproperty.Category,
-				Label:            vappproperty.Label,
-				Type:             vappproperty.Type,
-				TypeReference:    vappproperty.TypeReference,
-				UserConfigurable: vappproperty.UserConfigurable,
-				DefaultValue:     vappproperty.DefaultValue,
-				Value:            vappproperty.Value,
-				Description:      vappproperty.Description,
-			},
-		})
+	currentvappproperties := []types.VAppPropertyInfo{}
+	if moref.Config != nil {
+		currentvappproperties = moref.Config.VAppConfig.GetVmConfigInfo().Property
+		for _, vappproperty := range currentvappproperties {
+			vappconfig.Property = append(vappconfig.Property, types.VAppPropertySpec{
+				ArrayUpdateSpec: types.ArrayUpdateSpec{
+					Operation: types.ArrayUpdateOperationAdd,
+				},
+				Info: &types.VAppPropertyInfo{
+					Key:              vappproperty.Key,
+					ClassId:          vappproperty.ClassId,
+					InstanceId:       vappproperty.InstanceId,
+					Id:               vappproperty.Id,
+					Category:         vappproperty.Category,
+					Label:            vappproperty.Label,
+					Type:             vappproperty.Type,
+					TypeReference:    vappproperty.TypeReference,
+					UserConfigurable: vappproperty.UserConfigurable,
+					DefaultValue:     vappproperty.DefaultValue,
+					Value:            vappproperty.Value,
+					Description:      vappproperty.Description,
+				},
+			})
+		}
 	}
 
 	newvappproperties := []vAPPProperty{

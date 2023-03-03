@@ -28,10 +28,9 @@ var Commands struct {
 		Force        bool     `short:"f" long:"force"`
 	} // `command:"datacenter" alias:"dc" description:"Define a Network Protocol Profile within a datacenter"`
 	VirtualMachine struct {
-		Name                string `short:"n" long:"name" description:"Name of virtual machine" required:"true"`
-		Datacenter          string `long:"datacenter" description:"Name of datacenter" required:"true"`
-		Network             string `long:"portgroup" description:"Name of network portgroup" required:"true"`
-		DisableOvfTransport bool   `long:"disableovftransport" description:"Disable the OVF transport 'VMware Tools'"`
+		Name       string `short:"n" long:"name" description:"Name of virtual machine" required:"true"`
+		Datacenter string `long:"datacenter" description:"Name of datacenter" required:"true"`
+		Network    string `long:"portgroup" description:"Name of network portgroup" required:"true"`
 	} // `command:"virtualmachine" alias:"vm" description:"Configure a virtual machine for usage of Network Protocol Profiles"`
 	GuestOS struct {
 	} // `command:"guestos" alias:"os" description:"Configure guest OS network with allocated IP address"`
@@ -45,7 +44,6 @@ func main() {
 	parser.AddCommand("vm", "", "", &Commands.VirtualMachine)
 	parser.AddCommand("guestos", "Configure guest OS network with allocated IP address", "", &Commands.GuestOS)
 	parser.AddCommand("os", "", "", &Commands.GuestOS)
-
 	_, err := parser.Parse()
 	if err != nil {
 		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
@@ -73,7 +71,7 @@ func main() {
 	case "guestos", "os":
 		// TODO
 	case "virtualmachine", "vm":
-		if err := hypervisor.SetVirtualMachineProperties(ctx, clt, Commands.VirtualMachine.Datacenter, Commands.VirtualMachine.Name, Commands.VirtualMachine.Network, Commands.VirtualMachine.DisableOvfTransport); err != nil {
+		if err := hypervisor.SetVirtualMachineProperties(ctx, clt, Commands.VirtualMachine.Datacenter, Commands.VirtualMachine.Name, Commands.VirtualMachine.Network); err != nil {
 			log.Fatalf("[ERROR] Could not apply vApp properties: %s", err)
 		}
 
